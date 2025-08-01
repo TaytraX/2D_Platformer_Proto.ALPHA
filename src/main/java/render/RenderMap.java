@@ -19,7 +19,7 @@ import static org.lwjgl.opengl.GL15C.*;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30C.glGenVertexArrays;
 
-public class GroundRenderer implements Renderable {
+public class RenderMap implements Renderable {
 
     private int VAO;
     private final Shader shader;
@@ -27,7 +27,7 @@ public class GroundRenderer implements Renderable {
     private final FloatBuffer matrixBuffer = org.lwjgl.BufferUtils.createFloatBuffer(16);
     private final Matrix4f transformationMatrix = new Matrix4f();
 
-    public GroundRenderer() {
+    public RenderMap() {
         shader = new Shader("platforms");
     }
 

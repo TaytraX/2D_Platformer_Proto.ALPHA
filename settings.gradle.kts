@@ -1,1 +1,1 @@
-rootProject.name = "Proto_2.ALPHA"
+rootProject.name = "2D_Platformer_Proto.ALPHA"

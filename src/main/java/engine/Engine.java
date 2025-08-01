@@ -1,6 +1,5 @@
 package engine;
 
-import engine.world.GroundGenRequest;
 import entity.AnimationState;
 import entity.Camera;
 import entity.Player;
@@ -9,13 +8,7 @@ import laucher.Main;
 import render.DisplayManager;
 import render.Window;
 import org.joml.Vector2f;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static engine.world.GeneratedGround.CHUNK_WIDTH;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 public class Engine {
@@ -27,9 +20,6 @@ public class Engine {
     private Physics physics;
     private long lastTime = System.currentTimeMillis();
     private float deltaTime = 0.000016f;
-    public static ConcurrentHashMap<Integer, List<AABB>> worldChunks = new ConcurrentHashMap<>();
-    Random random = new Random();
-    private final long seed = random.nextLong();
 
     public void start() {
         init();
@@ -67,8 +57,6 @@ public class Engine {
             ThreadManager.playerState.set(initialState);
             GameLogger.info("PlayerState initialisé");
 
-            generateInitialWorld();
-
             // Vérification que l'état est bien défini
             PlayerState test = ThreadManager.playerState.get();
             if (test == null) {
@@ -93,46 +81,6 @@ public class Engine {
             GameLogger.error("Échec d'initialisation du moteur", e);
             System.exit(1); // Arrêt propre au lieu de crash
         }
-    }
-
-    private void generateInitialWorld() {
-        // Générer 5 chunks autour du spawn (x=0)
-        for (int chunkX = -3; chunkX <= 3; chunkX++) {
-            loadChunks(chunkX);
-        }
-        GameLogger.info("Monde initial généré : " + getTotalBlockCount() + " blocs");
-    }
-
-    public void unloadChunk(int chunkX) {
-        if (worldChunks.remove(chunkX) != null) {
-            GameLogger.debug("Chunk " + chunkX + " déchargé");
-        }
-    }
-
-    // Décharger les chunks lointains pour économiser la mémoire
-    public void manageChunks() {
-        PlayerState playerState = ThreadManager.playerState.get();
-        if (playerState == null) return;
-
-        int playerChunkX = (int)(playerState.position().x / CHUNK_WIDTH);
-
-        List<Integer> chunksToUnload = new ArrayList<>();
-
-        for (Integer chunkX : worldChunks.keySet()) {
-            if (Math.abs(chunkX - playerChunkX) > 4) {
-                chunksToUnload.add(chunkX);
-            }
-        }
-
-        for (Integer chunkX : chunksToUnload) {
-            unloadChunk(chunkX);
-        }
-    }
-
-    private int getTotalBlockCount() {
-        return worldChunks.values().stream()
-                .mapToInt(List::size)
-                .sum();
     }
 
     public void render() {
@@ -167,12 +115,10 @@ public class Engine {
 
         camera.followPlayer(deltaTime);
         // 2. Physics applique velocity à position
-        PlayerState afterPhysics = physics.update(afterInputs, getPlatformsNearPlayer(), deltaTime);
+        PlayerState afterPhysics = physics.update(afterInputs, , deltaTime);
 
         // 4. Sauvegarder le nouvel état
         ThreadManager.playerState.set(afterPhysics);
-
-        manageChunks();
     }
 
     // Optionnel : méthode pour changer le mode en jeu
@@ -185,38 +131,6 @@ public class Engine {
             case STRETCH -> display.setScaleMode(DisplayManager.ScaleMode.INTEGER);
             case INTEGER -> display.setScaleMode(DisplayManager.ScaleMode.LETTERBOX);
         }
-    }
-
-    public void loadChunks(int chunkX) {
-        if (!worldChunks.containsKey(chunkX)) {
-            // Demander génération asynchrone
-            GroundGenRequest request = new GroundGenRequest(chunkX, seed);
-            ThreadManager.platformGenQueue.offer(request);
-            GameLogger.debug("Demande génération chunk " + chunkX);
-        }
-    }
-
-    public int getChunkX(float worldX) {
-        return (int) Math.floor(worldX / CHUNK_WIDTH);
-    }
-
-    public List<AABB> getPlatformsNearPlayer() {
-        PlayerState state = ThreadManager.playerState.get();
-
-        if (state == null) return new ArrayList<>();
-
-        int playerChunkX = getChunkX(state.position().x);
-        List<AABB> nearbyPlatforms = new ArrayList<>();
-
-        for (int chunkX = playerChunkX - 3; chunkX <= playerChunkX + 3; chunkX++) {
-            loadChunks(chunkX);
-
-            List<AABB> chunkPlatforms = worldChunks.get(chunkX);
-            if (chunkPlatforms != null) {
-                nearbyPlatforms.addAll(chunkPlatforms);
-            }
-        }
-        return nearbyPlatforms;
     }
 
     public void cleanup() {

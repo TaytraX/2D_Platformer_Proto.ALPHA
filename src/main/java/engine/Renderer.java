@@ -6,32 +6,32 @@ import render.*;
 public class Renderer {
 
     private final BackgroundRenderer BackgroundRenderer;
-    private final GroundRenderer GroundRenderer;
+    private final RenderMap RenderMap;
     private final RenderPlayer RenderPlayer;
 
     public Renderer() {
         BackgroundRenderer = new BackgroundRenderer();
-        GroundRenderer = new GroundRenderer();
+        RenderMap = new RenderMap();
         RenderPlayer = new RenderPlayer();
     }
 
     public void initialize() {
         BackgroundRenderer.initialize();
-        GroundRenderer.initialize();
+        RenderMap.initialize();
         RenderPlayer.initialize();
     }
 
     public void renderFrame(Camera camera, float deltaTime){
 
         BackgroundRenderer.render(camera, deltaTime);
-        GroundRenderer.render(camera, deltaTime);
+        RenderMap.render(camera, deltaTime);
 
         RenderPlayer.render(camera, deltaTime);
     }
 
     public void cleanUp() {
         BackgroundRenderer.cleanup();
-        GroundRenderer.cleanup();
+        RenderMap.cleanup();
         RenderPlayer.cleanup();
     }
 }
