@@ -1,6 +1,8 @@
 package entity;
 
 import engine.AABB;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2f;
 
 public record PlayerState(
@@ -20,6 +22,8 @@ public record PlayerState(
 ) {
     public static final Vector2f PLAYER_SIZE = new Vector2f(0.4f, 0.6f);
 
+    @NotNull
+    @Contract(" -> new")
     public AABB getAABB() {
         return new AABB(position, PLAYER_SIZE);
     }

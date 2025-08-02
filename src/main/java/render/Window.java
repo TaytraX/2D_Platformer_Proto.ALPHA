@@ -91,9 +91,9 @@ public class Window {
 
             // Inputs FOV
             if(key == GLFW_KEY_UP && action == GLFW_PRESS)
-                Main.getEngine().camera.decreaseFOV();
-            if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
                 Main.getEngine().camera.increaseFOV();
+            if(key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+                Main.getEngine().camera.decreaseFOV();
             if(key == GLFW_KEY_R && action == GLFW_PRESS)
                 Main.getEngine().camera.resetFOV();
         });

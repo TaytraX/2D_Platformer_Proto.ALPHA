@@ -91,7 +91,7 @@ public class Physics {
         }
 
         // réduction du contrôle aérien en simulant la loi de conserve du momentum
-        if (!isGrounded && jumpVelocity != null) {
+        if (!isGrounded && jumpVelocity != null && newVelocity.x != 0) {
             float airControlFriction = Math.abs(GRAVITY) * 0.20f;
 
             // Remettre la vitesse X à celle du saut comme base

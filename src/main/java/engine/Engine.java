@@ -24,7 +24,8 @@ public class Engine {
     private Physics physics;
     private long lastTime = System.currentTimeMillis();
     private float deltaTime = 0.000016f;
-    public static int level = 1;
+    public static int level;
+    private static PlayerState initialState;
     public static ConcurrentHashMap<Integer, List<AABB>> platforms = new ConcurrentHashMap<>();
 
     public void start() {
@@ -45,8 +46,8 @@ public class Engine {
 
 
             // Initialiser un PlayerState de base
-            PlayerState initialState = new PlayerState(
-                    new Vector2f(0, 30),
+            initialState = new PlayerState(
+                    new Vector2f(-30, 3),
                     new Vector2f(0, 0),
                     new Vector2f(0, 0),
                     false,
@@ -92,7 +93,7 @@ public class Engine {
     }
 
     private void loadInitialMap() {
-        loadLevel(getLevel());
+        loadLevel(getMapToLoad());
     }
 
     public void unloadChunk(int chunkX) {
@@ -106,13 +107,13 @@ public class Engine {
         PlayerState playerState = ThreadManager.playerState.get();
         if (playerState == null) return;
 
-        int playerChunkX = getLevel() - 1;
+        int currentMap = getMapToLoad();
 
         List<Integer> chunksToUnload = new ArrayList<>();
 
-        for (Integer chunkX : platforms.keySet()) {
-            if (Math.abs(chunkX - playerChunkX) > 4) {
-                chunksToUnload.add(chunkX);
+        for (Integer mapId  : platforms.keySet()) {
+            if (mapId != currentMap) {
+                chunksToUnload.add(mapId);
             }
         }
 
@@ -149,6 +150,10 @@ public class Engine {
         // 1. Récupérer l'état actuel
         PlayerState currentState = ThreadManager.playerState.get();
 
+        if (currentState.position().y <= -50.0f) {
+            currentState = initialState;
+        }
+
         // 2. Traiter les inputs et mouvements
         PlayerState afterInputs  = player.update(currentState, deltaTime);
 
@@ -158,8 +163,6 @@ public class Engine {
 
         // 4. Sauvegarder le nouvel état
         ThreadManager.playerState.set(afterPhysics);
-
-        manageMap();
     }
 
     // Optionnel : méthode pour changer le mode en jeu
@@ -174,7 +177,7 @@ public class Engine {
         }
     }
 
-    public static int getLevel() {
+    public static int getMapToLoad() {
 
         return switch (level) {
             case 1 -> 2;
@@ -190,7 +193,7 @@ public class Engine {
         if (!platforms.containsKey(level)) {
 
             // Demander génération asynchrone
-            MapLoadRequest request = new MapLoadRequest(getLevel());
+            MapLoadRequest request = new MapLoadRequest(level);
             ThreadManager.MapLoadQueue.offer(request);
             GameLogger.debug("Demande génération chunk " + level);
         }
@@ -198,23 +201,29 @@ public class Engine {
 
     public List<AABB> getLevelNearPlayer() {
         PlayerState state = ThreadManager.playerState.get();
-
         if (state == null) return new ArrayList<>();
 
-        int playerLevel = getLevel() - 1;
-        List<AABB> nearbyPlatforms = new ArrayList<>();
+        int mapToLoad  = getMapToLoad();
 
-        for (int Level = 1; Level <= 5; Level++) {
-            loadLevel(getLevel());
-
-            List<AABB> chunkPlatforms = platforms.get(Level);
-            if (chunkPlatforms != null) {
-                nearbyPlatforms.addAll(chunkPlatforms);
-            }
-        }
-        return nearbyPlatforms;
+        List<AABB> currentMap  = platforms.get(mapToLoad);
+        return currentMap != null ? currentMap : new ArrayList<>();
     }
 
+    public void transitionToNextLevel() {
+        if (level < 4) { // Maximum niveau 4 -> map 5
+            level++;
+            GameLogger.info("Transition vers niveau " + level + " (map " + getMapToLoad() + ")");
+
+            // Charger la nouvelle map
+            int newMapId = getMapToLoad();
+            loadLevel(newMapId);
+
+            // Nettoyer les anciennes maps
+            manageMap();
+        } else {
+            GameLogger.info("Niveau maximum atteint !");
+        }
+    }
 
     public void cleanup() {
         Renderer.cleanUp();
