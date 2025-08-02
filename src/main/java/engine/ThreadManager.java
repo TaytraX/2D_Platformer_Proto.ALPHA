@@ -1,5 +1,6 @@
 package engine;
 
+import engine.maps.*;
 import entity.PlayerState;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -23,6 +24,15 @@ public class ThreadManager {
             while(!Thread.currentThread().isInterrupted()) {
                 try {
                     MapLoadRequest request = MapLoadQueue.take();
+
+                    switch(request.level()) {
+                        case 2 -> new Level_2().LoadMap();
+                        case 3 -> new Level_3().LoadMap();
+                        case 4 -> new Level_4().LoadMap();
+                        case 5 -> new Level_5().LoadMap();
+                        default -> new Level_1().LoadMap();
+                    };
+
                 }catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;

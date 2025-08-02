@@ -1,4 +1,3 @@
 package engine;
 
-public record MapLoadRequest() {
-}
+public record MapLoadRequest(int level) {}

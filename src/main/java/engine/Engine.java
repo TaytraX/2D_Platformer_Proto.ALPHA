@@ -12,6 +12,7 @@ import org.joml.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
@@ -24,8 +25,8 @@ public class Engine {
     private Physics physics;
     private long lastTime = System.currentTimeMillis();
     private float deltaTime = 0.000016f;
-    Level_1 level_1 = new Level_1();
-    List<AABB> platforms = level_1.LoadMap();
+    public static int level = getLevel() - 1;
+    ConcurrentHashMap<Integer, List<AABB>> platforms = new ConcurrentHashMap<>();
 
     public void start() {
         init();
@@ -63,6 +64,8 @@ public class Engine {
             ThreadManager.playerState.set(initialState);
             GameLogger.info("PlayerState initialisé");
 
+            loadInitialMap();
+
             // Vérification que l'état est bien défini
             PlayerState test = ThreadManager.playerState.get();
             if (test == null) {
@@ -89,12 +92,8 @@ public class Engine {
         }
     }
 
-    private void generateInitialWorld() {
-        // Générer 5 chunks autour du spawn (x=0)
-        for (int chunkX = -3; chunkX <= 3; chunkX++) {
-            loadChunks(chunkX);
-        }
-        GameLogger.info("Monde initial généré : " + getTotalBlockCount() + " blocs");
+    private void loadInitialMap() {
+        loadLevel(level);
     }
 
     public void unloadChunk(int chunkX) {
@@ -108,11 +107,11 @@ public class Engine {
         PlayerState playerState = ThreadManager.playerState.get();
         if (playerState == null) return;
 
-        int playerChunkX = (int)(playerState.position().x / CHUNK_WIDTH);
+        int playerChunkX = level;
 
         List<Integer> chunksToUnload = new ArrayList<>();
 
-        for (Integer chunkX : worldChunks.keySet()) {
+        for (Integer chunkX : platforms.keySet()) {
             if (Math.abs(chunkX - playerChunkX) > 4) {
                 chunksToUnload.add(chunkX);
             }
@@ -121,12 +120,6 @@ public class Engine {
         for (Integer chunkX : chunksToUnload) {
             unloadChunk(chunkX);
         }
-    }
-
-    private int getTotalBlockCount() {
-        return worldChunks.values().stream()
-                .mapToInt(List::size)
-                .sum();
     }
 
 
@@ -162,7 +155,7 @@ public class Engine {
 
         camera.followPlayer(deltaTime);
         // 2. Physics applique velocity à position
-        PlayerState afterPhysics = physics.update(afterInputs, , deltaTime);
+        PlayerState afterPhysics = physics.update(afterInputs, getPlatformsNearPlayer(), deltaTime);
 
         // 4. Sauvegarder le nouvel état
         ThreadManager.playerState.set(afterPhysics);
@@ -180,17 +173,26 @@ public class Engine {
         }
     }
 
-    public void loadChunks(int chunkX) {
-        if (!worldChunks.containsKey(chunkX)) {
-            // Demander génération asynchrone
-            GroundGenRequest request = new GroundGenRequest(chunkX, seed);
-            ThreadManager.platformGenQueue.offer(request);
-            GameLogger.debug("Demande génération chunk " + chunkX);
-        }
+    public static int getLevel() {
+
+        return switch (level) {
+            case 1 -> 2;
+            case 2 -> 3;
+            case 3 -> 4;
+            case 4 -> 5;
+            default -> 1;
+        };
+
     }
 
-    public int getChunkX(float worldX) {
-        return (int) Math.floor(worldX / CHUNK_WIDTH);
+    public void loadLevel(int level) {
+        if (!platforms.containsKey(level)) {
+
+            // Demander génération asynchrone
+            MapLoadRequest request = new MapLoadRequest(getLevel());
+            ThreadManager.MapLoadQueue.offer(request);
+            GameLogger.debug("Demande génération chunk " + level);
+        }
     }
 
     public List<AABB> getPlatformsNearPlayer() {
@@ -198,13 +200,13 @@ public class Engine {
 
         if (state == null) return new ArrayList<>();
 
-        int playerChunkX = getChunkX(state.position().x);
+        int playerLevel = level;
         List<AABB> nearbyPlatforms = new ArrayList<>();
 
-        for (int chunkX = playerChunkX - 3; chunkX <= playerChunkX + 3; chunkX++) {
-            loadChunks(chunkX);
+        for (int Level = 1; Level <= 5; Level++) {
+            loadLevel(Level);
 
-            List<AABB> chunkPlatforms = platforms;
+            List<AABB> chunkPlatforms = platforms.get(Level);
             if (chunkPlatforms != null) {
                 nearbyPlatforms.addAll(chunkPlatforms);
             }
