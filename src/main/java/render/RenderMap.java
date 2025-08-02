@@ -72,7 +72,7 @@ public class RenderMap implements Renderable {
     @Override
     public void render(Camera camera, float deltaTime) {
         try {
-            List<AABB> allPlatforms = Main.getEngine().getPlatformsNearPlayer();
+            List<AABB> allPlatforms = Main.getEngine().getLevelNearPlayer();
 
             shader.use();
 

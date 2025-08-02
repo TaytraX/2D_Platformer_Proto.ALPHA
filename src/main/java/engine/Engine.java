@@ -1,6 +1,5 @@
 package engine;
 
-import engine.maps.Level_1;
 import entity.AnimationState;
 import entity.Camera;
 import entity.Player;
@@ -25,8 +24,8 @@ public class Engine {
     private Physics physics;
     private long lastTime = System.currentTimeMillis();
     private float deltaTime = 0.000016f;
-    public static int level = getLevel() - 1;
-    ConcurrentHashMap<Integer, List<AABB>> platforms = new ConcurrentHashMap<>();
+    public static int level = 1;
+    public static ConcurrentHashMap<Integer, List<AABB>> platforms = new ConcurrentHashMap<>();
 
     public void start() {
         init();
@@ -93,7 +92,7 @@ public class Engine {
     }
 
     private void loadInitialMap() {
-        loadLevel(level);
+        loadLevel(getLevel());
     }
 
     public void unloadChunk(int chunkX) {
@@ -103,11 +102,11 @@ public class Engine {
     }
 
     // Décharger les chunks lointains pour économiser la mémoire
-    public void manageChunks() {
+    public void manageMap() {
         PlayerState playerState = ThreadManager.playerState.get();
         if (playerState == null) return;
 
-        int playerChunkX = level;
+        int playerChunkX = getLevel() - 1;
 
         List<Integer> chunksToUnload = new ArrayList<>();
 
@@ -155,10 +154,12 @@ public class Engine {
 
         camera.followPlayer(deltaTime);
         // 2. Physics applique velocity à position
-        PlayerState afterPhysics = physics.update(afterInputs, getPlatformsNearPlayer(), deltaTime);
+        PlayerState afterPhysics = physics.update(afterInputs, getLevelNearPlayer(), deltaTime);
 
         // 4. Sauvegarder le nouvel état
         ThreadManager.playerState.set(afterPhysics);
+
+        manageMap();
     }
 
     // Optionnel : méthode pour changer le mode en jeu
@@ -195,16 +196,16 @@ public class Engine {
         }
     }
 
-    public List<AABB> getPlatformsNearPlayer() {
+    public List<AABB> getLevelNearPlayer() {
         PlayerState state = ThreadManager.playerState.get();
 
         if (state == null) return new ArrayList<>();
 
-        int playerLevel = level;
+        int playerLevel = getLevel() - 1;
         List<AABB> nearbyPlatforms = new ArrayList<>();
 
         for (int Level = 1; Level <= 5; Level++) {
-            loadLevel(Level);
+            loadLevel(getLevel());
 
             List<AABB> chunkPlatforms = platforms.get(Level);
             if (chunkPlatforms != null) {
