@@ -1,8 +1,6 @@
 package render;
 
-import engine.AABB;
-import engine.Renderable;
-import engine.GameLogger;
+import engine.*;
 import entity.Camera;
 import laucher.Main;
 import org.joml.Matrix4f;
@@ -72,7 +70,7 @@ public class RenderMap implements Renderable {
     @Override
     public void render(Camera camera, float deltaTime) {
         try {
-            List<AABB> allPlatforms = Main.getEngine().getLevelNearPlayer();
+            LevelManager currentLevel = Main.getEngine().getLevelNearPlayer();
 
             shader.use();
 
@@ -87,11 +85,23 @@ public class RenderMap implements Renderable {
 
             glBindVertexArray(VAO);
 
-            for (AABB platform : allPlatforms) {
+            for (AABB platform : currentLevel.platforms()) {
                 // Transformation: Position + Scale
                 transformationMatrix.identity()
                         .translation(platform.position().x, platform.position().y, 0.0f)
                         .scale(platform.halfSize().x * 2.0f, platform.halfSize().y * 2.0f, 1.0f);
+
+                matrixBuffer.clear();
+                transformationMatrix.get(matrixBuffer);
+                shader.setUniformMat4f("transformationMatrix", matrixBuffer);
+
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+            }
+
+            for (Portal portal : currentLevel.portals()) {
+                transformationMatrix.identity()
+                        .translation(portal.position().x, portal.position().y, 0.0f)
+                        .scale(portal.halfSize().x * 2.0f, portal.halfSize().y * 2.0f, 1.0f);
 
                 matrixBuffer.clear();
                 transformationMatrix.get(matrixBuffer);

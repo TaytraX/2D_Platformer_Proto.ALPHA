@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static engine.ThreadManager.playerState;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 public class Engine {
@@ -26,7 +27,7 @@ public class Engine {
     private float deltaTime = 0.000016f;
     public static int level;
     private static PlayerState initialState;
-    public static ConcurrentHashMap<Integer, List<AABB>> platforms = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<Integer, LevelManager> platforms = new ConcurrentHashMap<>();
 
     public void start() {
         init();
@@ -61,13 +62,13 @@ public class Engine {
                     12.0f,
                     System.currentTimeMillis()
             );
-            ThreadManager.playerState.set(initialState);
+            playerState.set(initialState);
             GameLogger.info("PlayerState initialisé");
 
             loadInitialMap();
 
             // Vérification que l'état est bien défini
-            PlayerState test = ThreadManager.playerState.get();
+            PlayerState test = playerState.get();
             if (test == null) {
                 GameLogger.error("PlayerState est null après initialisation !", null);
                 throw new Exception("PlayerState initialization failed");
@@ -84,7 +85,7 @@ public class Engine {
             player = new Player(window.getWindowID());
             physics = new Physics();
 
-            GameLogger.info("Composants créés");
+            GameLogger.info("Level 1 chargé");
 
         } catch (Exception e) {
             GameLogger.error("Échec d'initialisation du moteur", e);
@@ -96,9 +97,9 @@ public class Engine {
         loadLevel(getMapToLoad());
     }
 
-    public void unloadChunk(int chunkX) {
-        if (platforms.remove(chunkX) != null) {
-            GameLogger.debug("Chunk " + chunkX + " déchargé");
+    public void unloadChunk(int level) {
+        if (platforms.remove(level) != null) {
+            GameLogger.debug("Level " + level + " déchargé");
         }
     }
 
@@ -148,21 +149,54 @@ public class Engine {
 
     public void update() {
         // 1. Récupérer l'état actuel
-        PlayerState currentState = ThreadManager.playerState.get();
+        PlayerState currentState = playerState.get();
 
         if (currentState.position().y <= -50.0f) {
             currentState = initialState;
         }
+
+        LevelManager currentLevel = getLevelNearPlayer();
 
         // 2. Traiter les inputs et mouvements
         PlayerState afterInputs  = player.update(currentState, deltaTime);
 
         camera.followPlayer(deltaTime);
         // 2. Physics applique velocity à position
-        PlayerState afterPhysics = physics.update(afterInputs, getLevelNearPlayer(), deltaTime);
+        PlayerState afterPhysics = physics.update(afterInputs, getLevelNearPlayer().platforms(), deltaTime);
+
+
+        if(checkTransition(afterPhysics, currentLevel.portals())) {
+            // Créer une nouvelle position de spawn pour le nouveau niveau
+            afterPhysics = createSpawnState();
+        }
 
         // 4. Sauvegarder le nouvel état
-        ThreadManager.playerState.set(afterPhysics);
+        playerState.set(afterPhysics);
+    }
+
+    private PlayerState createSpawnState() {
+        Vector2f spawnPosition = switch(level) {
+            case 2 -> new Vector2f(-20, 5);
+            case 3 -> new Vector2f(-15, 8);
+            // ... autres niveaux
+            default -> new Vector2f(-30, 3);
+        };
+
+        return new PlayerState(
+                spawnPosition,
+                new Vector2f(0, 0),
+                new Vector2f(0, 0),
+                false,
+                false,
+                0.0f,
+                AnimationState.IDLE,
+                true,
+                false,
+                false,
+                false,
+                12.0f,
+                System.currentTimeMillis()
+        );
     }
 
     // Optionnel : méthode pour changer le mode en jeu
@@ -195,35 +229,45 @@ public class Engine {
             // Demander génération asynchrone
             MapLoadRequest request = new MapLoadRequest(level);
             ThreadManager.MapLoadQueue.offer(request);
-            GameLogger.debug("Demande génération chunk " + level);
+            GameLogger.debug("Demande dechargement du Level " + level);
         }
     }
 
-    public List<AABB> getLevelNearPlayer() {
-        PlayerState state = ThreadManager.playerState.get();
-        if (state == null) return new ArrayList<>();
+    public LevelManager getLevelNearPlayer() {
+        PlayerState state = playerState.get();
+        if (state == null) return new LevelManager(new ArrayList<>(), new ArrayList<>());
 
-        int mapToLoad  = getMapToLoad();
+        int mapToLoad = getMapToLoad();
+        LevelManager currentLevel = platforms.get(mapToLoad);
 
-        List<AABB> currentMap  = platforms.get(mapToLoad);
-        return currentMap != null ? currentMap : new ArrayList<>();
+        return currentLevel != null ? currentLevel : new LevelManager(new ArrayList<>(), new ArrayList<>());
+    }
+
+    private boolean checkTransition(PlayerState playerState, List<Portal> portals) {
+        AABB playerAABB = playerState.getAABB();
+
+        for (Portal portal : portals) {
+            if (portal.transit(playerAABB)) {
+                transitionToNextLevel();
+                return true;
+            }
+        }
+        return false;
     }
 
     public void transitionToNextLevel() {
-        if (level < 4) { // Maximum niveau 4 -> map 5
+        if (level < 4) { // Maximum niveau 4
             level++;
-            GameLogger.info("Transition vers niveau " + level + " (map " + getMapToLoad() + ")");
+            GameLogger.info("Transition vers niveau " + level);
 
-            // Charger la nouvelle map
             int newMapId = getMapToLoad();
             loadLevel(newMapId);
-
-            // Nettoyer les anciennes maps
             manageMap();
         } else {
             GameLogger.info("Niveau maximum atteint !");
         }
-    }
+
+        }
 
     public void cleanup() {
         Renderer.cleanUp();

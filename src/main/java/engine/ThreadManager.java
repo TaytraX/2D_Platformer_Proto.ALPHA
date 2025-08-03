@@ -4,8 +4,6 @@ import engine.maps.*;
 import entity.PlayerState;
 
 import static engine.Engine.platforms;
-
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -19,7 +17,7 @@ public class ThreadManager {
 
     public static void initializer() {
         loadMapExecutor = Executors.newSingleThreadExecutor(r -> {
-            Thread thread = new Thread(r, "GroundGenThread");
+            Thread thread = new Thread(r, "MapLoadThread");
             thread.setDaemon(true);
             return thread;
         });
@@ -29,15 +27,16 @@ public class ThreadManager {
                 try {
                     MapLoadRequest request = MapLoadQueue.take();
 
-                    List<AABB> generatedPlatforms = switch(request.level()) {
-                        case 2 -> new Level_2().LoadMap();
-                        case 3 -> new Level_3().LoadMap();
-                        case 4 -> new Level_4().LoadMap();
-                        case 5 -> new Level_5().LoadMap();
-                        default -> new Level_1().LoadMap();
+                    LevelManager generatedLevel = switch(request.level()) {
+                        case 2 -> new Level_2().load();
+                        case 3 -> new Level_3().load();
+                        case 4 -> new Level_4().load();
+                        case 5 -> new Level_5().load();
+                        default -> new Level_1().load();
                     };
 
-                    platforms.put(request.level(), generatedPlatforms);
+                    platforms.put(request.level(), generatedLevel);
+                    System.out.println("Level " + request.level() + " chargé");
 
                 }catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
