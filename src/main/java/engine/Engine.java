@@ -26,7 +26,6 @@ public class Engine {
     private long lastTime = System.currentTimeMillis();
     private float deltaTime = 0.000016f;
     public static int level;
-    private static PlayerState initialState;
     public static ConcurrentHashMap<Integer, LevelManager> platforms = new ConcurrentHashMap<>();
 
     public void start() {
@@ -45,9 +44,8 @@ public class Engine {
             }
             GameLogger.info("Window OK");
 
-
             // Initialiser un PlayerState de base
-            initialState = new PlayerState(
+            PlayerState initialState = new PlayerState(
                     new Vector2f(-30, 3),
                     new Vector2f(0, 0),
                     new Vector2f(0, 0),
@@ -93,8 +91,59 @@ public class Engine {
         }
     }
 
+    public void run() {
+        isRunning = true;
+        while (isRunning && !window.windowShouldClose()) {
+            long currentTime = System.currentTimeMillis();
+            deltaTime = (currentTime - lastTime) / 1000f;
+            lastTime = currentTime;
+
+            deltaTime = Math.min(deltaTime, 0.016f);
+
+            update();
+            render();
+        }
+        cleanup();
+    }
+
     private void loadInitialMap() {
         loadLevel(getMapToLoad());
+    }
+
+    public void render() {
+        try {
+            window.clear();
+            Renderer.renderFrame(camera, deltaTime);
+            window.update();
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    public void update() {
+        // 1. Récupérer l'état actuel
+        PlayerState currentState = playerState.get();
+
+        // respawn si le joueur est mort
+        if (currentState.position().y <= -50.0f) {
+            currentState = createSpawnState();
+        }
+
+        LevelManager currentLevel = getLevelNearPlayer();
+
+        // 2. Traiter les inputs et mouvements
+        PlayerState afterInputs  = player.update(currentState, deltaTime);
+
+        camera.followPlayer(deltaTime);
+
+        // 2. Physics applique velocity à position
+        PlayerState afterPhysics = physics.update(afterInputs, getLevelNearPlayer().platforms(), deltaTime);
+
+        if(checkTransition(afterPhysics, currentLevel.portals())) {
+            // Créer une nouvelle position de spawn pour le nouveau niveau
+            afterPhysics = createSpawnState();
+        }
+
+        // 4. Sauvegarder le nouvel état
+        playerState.set(afterPhysics);
     }
 
     public void unloadChunk(int level) {
@@ -123,62 +172,12 @@ public class Engine {
         }
     }
 
-
-    public void render() {
-        try {
-            window.clear();
-            Renderer.renderFrame(camera, deltaTime);
-            window.update();
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    public void run() {
-        isRunning = true;
-            while (isRunning && !window.windowShouldClose()) {
-                long currentTime = System.currentTimeMillis();
-                deltaTime = (currentTime - lastTime) / 1000f;
-                lastTime = currentTime;
-
-                deltaTime = Math.min(deltaTime, 0.016f);
-
-                update();
-                render();
-            }
-        cleanup();
-    }
-
-    public void update() {
-        // 1. Récupérer l'état actuel
-        PlayerState currentState = playerState.get();
-
-        if (currentState.position().y <= -50.0f) {
-            currentState = initialState;
-        }
-
-        LevelManager currentLevel = getLevelNearPlayer();
-
-        // 2. Traiter les inputs et mouvements
-        PlayerState afterInputs  = player.update(currentState, deltaTime);
-
-        camera.followPlayer(deltaTime);
-        // 2. Physics applique velocity à position
-        PlayerState afterPhysics = physics.update(afterInputs, getLevelNearPlayer().platforms(), deltaTime);
-
-
-        if(checkTransition(afterPhysics, currentLevel.portals())) {
-            // Créer une nouvelle position de spawn pour le nouveau niveau
-            afterPhysics = createSpawnState();
-        }
-
-        // 4. Sauvegarder le nouvel état
-        playerState.set(afterPhysics);
-    }
-
     private PlayerState createSpawnState() {
         Vector2f spawnPosition = switch(level) {
             case 2 -> new Vector2f(-20, 5);
             case 3 -> new Vector2f(-15, 8);
-            // ... autres niveaux
+            case 4 -> new Vector2f(2.0f, 8);
+            case 5 -> new Vector2f(-4, 5);
             default -> new Vector2f(-30, 3);
         };
 
@@ -237,8 +236,7 @@ public class Engine {
         PlayerState state = playerState.get();
         if (state == null) return new LevelManager(new ArrayList<>(), new ArrayList<>());
 
-        int mapToLoad = getMapToLoad();
-        LevelManager currentLevel = platforms.get(mapToLoad);
+        LevelManager currentLevel = platforms.get(getMapToLoad());
 
         return currentLevel != null ? currentLevel : new LevelManager(new ArrayList<>(), new ArrayList<>());
     }
@@ -260,8 +258,7 @@ public class Engine {
             level++;
             GameLogger.info("Transition vers niveau " + level);
 
-            int newMapId = getMapToLoad();
-            loadLevel(newMapId);
+            loadLevel(getMapToLoad());
             manageMap();
         } else {
             GameLogger.info("Niveau maximum atteint !");
