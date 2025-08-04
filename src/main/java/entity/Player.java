@@ -43,6 +43,7 @@ public class Player {
                 moveRight,     // ← Action déterminée
                 jump,
                 state.force(),
+                state.blockedHorizontally(),
                 System.currentTimeMillis()
         );
     }

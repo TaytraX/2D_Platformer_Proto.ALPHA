@@ -58,6 +58,7 @@ public class Engine {
                     false,
                     false,
                     12.0f,
+                    true,
                     System.currentTimeMillis()
             );
             playerState.set(initialState);
@@ -194,6 +195,7 @@ public class Engine {
                 false,
                 false,
                 12.0f,
+                false,
                 System.currentTimeMillis()
         );
     }

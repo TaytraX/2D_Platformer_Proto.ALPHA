@@ -18,6 +18,7 @@ public record PlayerState(
         boolean moveRight,
         boolean jump,
         float force,
+        boolean blockedHorizontally,
         long timestamp
 ) {
     public static final Vector2f PLAYER_SIZE = new Vector2f(0.4f, 0.6f);

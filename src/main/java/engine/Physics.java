@@ -16,6 +16,7 @@ public class Physics {
         Vector2f newPosition = new Vector2f(currentState.position());
         boolean isGrounded = false;
         Vector2f jumpVelocity = currentState.jumpVelocity();
+        boolean blockedHorizontally = currentState.blockedHorizontally();
 
         // Calcul de la vitesse max basée uniquement sur la gravité
         float maxSpeed = 45.0f / (float) Math.sqrt(Math.abs(GRAVITY));
@@ -33,6 +34,7 @@ public class Physics {
                 float overlapY = playerAABB.getOverlapY(platform);
 
                 if (overlapX < overlapY - X_COLLISION_TOLERANCE) {
+                    blockedHorizontally = true;
                     // Traiter collision horizontale
                     if (newVelocity.x > 0) {
                         newVelocity.x = 0;
@@ -90,22 +92,29 @@ public class Physics {
             jumpVelocity = new Vector2f(newVelocity.x, 0); // Seulement X
         }
 
+        // Réinitialiser quand le joueur touche le sol
+        if (isGrounded) {
+            blockedHorizontally = false;
+        }
+
         // réduction du contrôle aérien en simulant la loi de conserve du momentum
         if (!isGrounded && jumpVelocity != null) {
             float airControlFriction = Math.abs(GRAVITY) * 0.20f;
-                // Remettre la vitesse X à celle du saut comme base
+
+            // conservation du momentum jusqu'à ce qu'il y ai collisions horizontales
+            if (!blockedHorizontally) {
                 newVelocity.x = jumpVelocity.x;
 
-            // Permettre le changement de direction avec friction
-            if ((currentState.moveLeft() && jumpVelocity.x > 0) ||
-                    (currentState.moveRight() && jumpVelocity.x < 0)) {
+                if ((currentState.moveLeft() && jumpVelocity.x > 0) ||
+                        (currentState.moveRight() && jumpVelocity.x < 0)) {
 
-                if (currentState.moveLeft()) {
-                    newVelocity.x -= airControlFriction * deltaTime;
-                } else {
-                    newVelocity.x += airControlFriction * deltaTime;
+                    if (currentState.moveLeft()) {
+                        newVelocity.x -= airControlFriction * deltaTime;
+                    } else {
+                        newVelocity.x += airControlFriction * deltaTime;
+                    }
                 }
-            }
+            }else newVelocity.x = 0; // arrêt forcé dès qu'il y ai collisions horizontales et que le joueur n'est pas au sol
         }
 
         return new PlayerState(
@@ -121,6 +130,7 @@ public class Physics {
                 currentState.moveRight(),
                 currentState.jump(),
                 currentState.force(),
+                blockedHorizontally,
                 currentState.timestamp()
         );
     }
