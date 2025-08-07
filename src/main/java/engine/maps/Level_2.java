@@ -11,7 +11,6 @@ public record Level_2() {
         return new LevelManager(
                 List.of(
                     new AABB(new Vector2f(-30.0f, -70.0f), new Vector2f(75.0f, 50f)),
-                    new AABB(new Vector2f(-65.0f, 0.0f), new Vector2f(20.0f, 80.0f)),
                     new AABB(new Vector2f(45.0f, -51.0f), new Vector2f(2.0f, 50.0f)),
                     new AABB(new Vector2f(45.0f, 53.0f), new Vector2f(2.0f, 50.0f)),
                     new AABB(new Vector2f(42.0f, -12.0f), new Vector2f(1.0f, 0.8f)),

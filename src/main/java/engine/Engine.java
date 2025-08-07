@@ -25,7 +25,7 @@ public class Engine {
     private Physics physics;
     private long lastTime = System.currentTimeMillis();
     private float deltaTime = 0.000016f;
-    public static int level;
+    public int level;
     public static ConcurrentHashMap<Integer, LevelManager> platforms = new ConcurrentHashMap<>();
 
     public void start() {
@@ -45,22 +45,7 @@ public class Engine {
             GameLogger.info("Window OK");
 
             // Initialiser un PlayerState de base
-            PlayerState initialState = new PlayerState(
-                    new Vector2f(-30, 3),
-                    new Vector2f(0, 0),
-                    new Vector2f(0, 0),
-                    false,
-                    false,
-                    0.0f,
-                    AnimationState.IDLE,
-                    true,
-                    false,
-                    false,
-                    false,
-                    12.0f,
-                    true,
-                    System.currentTimeMillis()
-            );
+            PlayerState initialState = createSpawnState();
             playerState.set(initialState);
             GameLogger.info("PlayerState initialisé");
 
@@ -174,10 +159,10 @@ public class Engine {
     }
 
     private PlayerState createSpawnState() {
-        Vector2f spawnPosition = switch(level) {
-            case 2 -> new Vector2f(-20, 5);
-            case 3 -> new Vector2f(-15, 8);
-            case 4 -> new Vector2f(2.0f, 8);
+        Vector2f spawnPosition = switch(level + 1) {
+            case 2 -> new Vector2f(-30, -15);
+            case 3 -> new Vector2f(-30, 50);
+            case 4 -> new Vector2f(-30.0f, -10.0f);
             case 5 -> new Vector2f(-4, 5);
             default -> new Vector2f(-30, 3);
         };
@@ -212,7 +197,7 @@ public class Engine {
         }
     }
 
-    public static int getMapToLoad() {
+    public int getMapToLoad() {
 
         return switch (level) {
             case 1 -> 2;

@@ -47,6 +47,8 @@ public class Physics {
             }
         }
 
+        System.out.println("Position X: " + newPosition.x + ", position Y: " + newPosition.y);
+
         // 2. ÉTAPE Y : Appliquer le mouvement Y puis tester toutes les plateformes
 
         // Appliquer la gravité
@@ -79,7 +81,7 @@ public class Physics {
 
         // Décélération exponentielle basée sur la gravité
         if (isGrounded && !currentState.moveLeft() && !currentState.moveRight()) {
-            float frictionRate = Math.abs(GRAVITY) * 0.30f; // 30% de la gravité
+            float frictionRate = Math.abs(GRAVITY) * 0.50f; // 30% de la gravité
             newVelocity.x *= Math.max(0, 1.0f - frictionRate * deltaTime);
         }
 
