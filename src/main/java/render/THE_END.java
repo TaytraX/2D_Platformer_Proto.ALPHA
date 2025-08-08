@@ -85,6 +85,8 @@ public class THE_END {
 
     public void render() {
         try {
+
+            transformationMatrix.identity();
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, texture.getTextureID());
 
