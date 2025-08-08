@@ -179,9 +179,7 @@ public class RenderPlayer implements Renderable {
             glBindVertexArray(0);
         } catch (Exception e) {
             GameLogger.error("Erreur dans le rendu du joueur", e);
-            // Ne pas faire crash le jeu, juste ignorer ce frame
         }
-
     }
 
     @Override

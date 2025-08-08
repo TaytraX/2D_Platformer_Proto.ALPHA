@@ -6,6 +6,7 @@ import entity.Player;
 import entity.PlayerState;
 import laucher.Main;
 import render.DisplayManager;
+import render.THE_END;
 import render.Window;
 import org.joml.Vector2f;
 
@@ -25,7 +26,7 @@ public class Engine {
     private Physics physics;
     private long lastTime = System.currentTimeMillis();
     private float deltaTime = 0.000016f;
-    public int level = getMapToLoad() - 1;
+    public int level = 4;
     public static ConcurrentHashMap<Integer, LevelManager> platforms = new ConcurrentHashMap<>();
 
     public void start() {
@@ -241,11 +242,18 @@ public class Engine {
     }
 
     public void transitionToNextLevel() {
+        if (level < 4) { // Maximum niveau 4
             level++;
             GameLogger.info("Transition vers niveau " + level);
 
             loadLevel(getMapToLoad());
             manageMap();
+        } else {
+            manageMap();
+            THE_END the_End = new THE_END();
+            the_End.render();
+            GameLogger.info("Niveau maximum atteint !");
+        }
     }
 
     public void cleanup() {
