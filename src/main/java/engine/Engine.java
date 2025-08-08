@@ -249,7 +249,6 @@ public class Engine {
             loadLevel(getMapToLoad());
             manageMap();
         } else {
-            manageMap();
             THE_END the_End = new THE_END();
             the_End.render();
             GameLogger.info("Niveau maximum atteint !");

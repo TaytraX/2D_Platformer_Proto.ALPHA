@@ -46,6 +46,12 @@ public class Shader {
                 createUniform("viewMatrix");
                 createUniform("projectionMatrix");
             }
+            case "THE_END" -> {
+                createUniform("transformationMatrix");
+                createUniform("viewMatrix");
+                createUniform("projectionMatrix");
+                createUniform("textureSampler");
+            }
         }
     }
 
