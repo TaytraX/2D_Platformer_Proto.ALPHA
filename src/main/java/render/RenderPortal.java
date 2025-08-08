@@ -70,6 +70,9 @@ public class RenderPortal implements Renderable {
     @Override
     public void render(Camera camera, float deltaTime) {
         try {
+            shader.setUniform1f("time", System.currentTimeMillis() / 1000f);
+            shader.setUniform2f("resolution", Main.getWindow().getDisplayManager().getWorldWidth(),
+                    Main.getWindow().getDisplayManager().getWorldHeight());
             LevelManager currentLevel = Main.getEngine().getLevelNearPlayer();
 
             shader.use();

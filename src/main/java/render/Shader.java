@@ -6,6 +6,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.lwjgl.opengl.GL20.glUniform1f;
+import static org.lwjgl.opengl.GL20.glUniform2f;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.glUniformMatrix4fv;
 
@@ -51,6 +53,13 @@ public class Shader {
                 createUniform("viewMatrix");
                 createUniform("projectionMatrix");
                 createUniform("textureSampler");
+            }
+            case "portal" -> {
+                createUniform("transformationMatrix");
+                createUniform("viewMatrix");
+                createUniform("projectionMatrix");
+                createUniform("time");
+                createUniform("resolution");
             }
         }
     }
@@ -99,6 +108,24 @@ public class Shader {
             System.err.println("Uniform not found: " + name);
         }
         uniforms.put(name, location);
+    }
+
+    public void setUniform1f(String name, float value) {
+        Integer location = uniforms.get(name);
+        if (location == null) {
+            System.err.println("Uniform not found: " + name);
+            return;
+        }
+        glUniform1f(location, value);
+    }
+
+    public void setUniform2f(String name, float x, float y) {
+        Integer location = uniforms.get(name);
+        if (location == null) {
+            System.err.println("Uniform not found: " + name);
+            return;
+        }
+        glUniform2f(location, x, y);
     }
 
     public void setUniformMat4f(String name, FloatBuffer matrix) {
