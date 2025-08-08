@@ -241,17 +241,12 @@ public class Engine {
     }
 
     public void transitionToNextLevel() {
-        if (level < 4) { // Maximum niveau 4
             level++;
             GameLogger.info("Transition vers niveau " + level);
 
             loadLevel(getMapToLoad());
             manageMap();
-        } else {
-            GameLogger.info("Niveau maximum atteint !");
-        }
-
-        }
+    }
 
     public void cleanup() {
         Renderer.cleanUp();
