@@ -28,12 +28,11 @@ public class ThreadManager {
                     MapLoadRequest request = MapLoadQueue.take();
 
                     LevelManager generatedLevel = switch(request.level()) {
-                        case 1 -> new Level_1().load();
                         case 2 -> new Level_2().load();
                         case 3 -> new Level_3().load();
                         case 4 -> new Level_4().load();
                         case 5 -> new Level_5().load();
-                        default -> throw new IllegalStateException("Unexpected value: " + request.level());
+                        default -> new Level_1().load();
                     };
 
                     platforms.put(request.level(), generatedLevel);

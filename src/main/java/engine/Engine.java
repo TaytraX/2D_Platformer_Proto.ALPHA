@@ -6,7 +6,6 @@ import entity.Player;
 import entity.PlayerState;
 import laucher.Main;
 import render.DisplayManager;
-import render.THE_END;
 import render.Window;
 import org.joml.Vector2f;
 
@@ -249,8 +248,6 @@ public class Engine {
             loadLevel(getMapToLoad());
             manageMap();
         } else {
-            THE_END the_End = new THE_END();
-            the_End.render();
             GameLogger.info("Niveau maximum atteint !");
         }
     }

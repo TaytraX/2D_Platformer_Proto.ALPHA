@@ -85,6 +85,8 @@ public class THE_END {
 
     public void render() {
         try {
+            Matrix4f projectionMatrix = new Matrix4f().ortho(-1, 1, -1, 1, -1, 1);
+            Matrix4f viewMatrix = new Matrix4f().identity();
 
             transformationMatrix.identity();
             glActiveTexture(GL_TEXTURE0);
@@ -97,14 +99,18 @@ public class THE_END {
             shader.setUniformMat4f("transformationMatrix", matrixBuffer);
 
             matrixBuffer.clear();
+            projectionMatrix.get(matrixBuffer);
             shader.setUniformMat4f("projectionMatrix", matrixBuffer);
 
             matrixBuffer.clear();
+            viewMatrix.get(matrixBuffer);
             shader.setUniformMat4f("viewMatrix", matrixBuffer);
 
             glBindVertexArray(VAO);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
+
+            shader.stop();
         } catch (Exception e) {
             GameLogger.error("Erreur dans le rendu du joueur", e);
         }
