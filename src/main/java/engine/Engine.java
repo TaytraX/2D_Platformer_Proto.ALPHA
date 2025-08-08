@@ -25,7 +25,7 @@ public class Engine {
     private Physics physics;
     private long lastTime = System.currentTimeMillis();
     private float deltaTime = 0.000016f;
-    public int level;
+    public int level = getMapToLoad() - 1;
     public static ConcurrentHashMap<Integer, LevelManager> platforms = new ConcurrentHashMap<>();
 
     public void start() {

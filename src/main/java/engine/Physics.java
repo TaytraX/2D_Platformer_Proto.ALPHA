@@ -47,8 +47,6 @@ public class Physics {
             }
         }
 
-        System.out.println("Position X: " + newPosition.x + ", position Y: " + newPosition.y);
-
         // 2. ÉTAPE Y : Appliquer le mouvement Y puis tester toutes les plateformes
 
         // Appliquer la gravité
