@@ -32,7 +32,7 @@ public class Renderer {
         if (Main.getEngine().isGameCompleted()) {
             theEndScreen.render(null, deltaTime);
         } else {
-            backgroundRenderer.render(camera, deltaTime);
+            backgroundRenderer.render(null, deltaTime);
             renderMap.render(camera, deltaTime);
             renderPlayer.render(camera, deltaTime);
             renderPortal.render(camera, deltaTime);
