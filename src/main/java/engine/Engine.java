@@ -17,6 +17,7 @@ import static engine.ThreadManager.playerState;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 public class Engine {
+    private boolean gameCompleted = false;
     public Window window;
     public boolean isRunning;
     public Renderer Renderer;
@@ -86,7 +87,7 @@ public class Engine {
 
             deltaTime = Math.min(deltaTime, 0.016f);
 
-            update();
+            if(!gameCompleted) update();
             render();
         }
         cleanup();
@@ -244,11 +245,11 @@ public class Engine {
         if (level < 4) { // Maximum niveau 4
             level++;
             GameLogger.info("Transition vers niveau " + level);
-
             loadLevel(getMapToLoad());
             manageMap();
         } else {
             GameLogger.info("Niveau maximum atteint !");
+            gameCompleted = true;
         }
     }
 
@@ -257,5 +258,9 @@ public class Engine {
         ThreadManager.shutdown();
         window.cleanup();
         glfwTerminate();
+    }
+
+    public boolean isGameCompleted() {
+        return gameCompleted;
     }
 }

@@ -11,12 +11,13 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.ARBVertexArrayObject.glBindVertexArray;
-import static org.lwjgl.opengl.GL11C.*;
 import static org.lwjgl.opengl.GL15C.*;
+import static org.lwjgl.opengl.GL15C.glBindBuffer;
+import static org.lwjgl.opengl.GL15C.glBufferData;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30C.glGenVertexArrays;
 
-public class RenderMap implements Renderable {
+public class RenderPortal implements Renderable {
 
     private int VAO;
     private final Shader shader;
@@ -24,16 +25,16 @@ public class RenderMap implements Renderable {
     private final FloatBuffer matrixBuffer = org.lwjgl.BufferUtils.createFloatBuffer(16);
     private final Matrix4f transformationMatrix = new Matrix4f();
 
-    public RenderMap() {
-        shader = new Shader("platforms");
+    public RenderPortal() {
+        shader = new Shader("portal");
     }
 
     @Override
     public void initialize() {
-
         VAO = glGenVertexArrays();
         int VBO = glGenBuffers();
         int EBO = glGenBuffers();
+
         // Quad unitaire centré en (0,0) avec taille 1x1
         float[] vertices = {
                 -0.5f, -0.5f,  // Bas gauche
@@ -84,11 +85,10 @@ public class RenderMap implements Renderable {
 
             glBindVertexArray(VAO);
 
-            for (AABB platform : currentLevel.platforms()) {
-                // Transformation: Position + Scale
+            for (Portal portal : currentLevel.portals()) {
                 transformationMatrix.identity()
-                        .translation(platform.position().x, platform.position().y, 0.0f)
-                        .scale(platform.halfSize().x * 2.0f, platform.halfSize().y * 2.0f, 1.0f);
+                        .translation(portal.position().x, portal.position().y, 0.0f)
+                        .scale(portal.halfSize().x * 2.0f, portal.halfSize().y * 2.0f, 1.0f);
 
                 matrixBuffer.clear();
                 transformationMatrix.get(matrixBuffer);

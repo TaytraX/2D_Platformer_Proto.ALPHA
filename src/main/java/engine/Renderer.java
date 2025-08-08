@@ -1,37 +1,48 @@
 package engine;
 
 import entity.Camera;
+import laucher.Main;
 import render.*;
 
 public class Renderer {
 
-    private final BackgroundRenderer BackgroundRenderer;
-    private final RenderMap RenderMap;
-    private final RenderPlayer RenderPlayer;
+    private final BackgroundRenderer backgroundRenderer;
+    private final RenderMap renderMap;
+    private final RenderPlayer renderPlayer;
+    private final RenderPortal renderPortal;
+    private THE_END theEndScreen;
 
     public Renderer() {
-        BackgroundRenderer = new BackgroundRenderer();
-        RenderMap = new RenderMap();
-        RenderPlayer = new RenderPlayer();
+        backgroundRenderer = new BackgroundRenderer();
+        renderMap = new RenderMap();
+        renderPlayer = new RenderPlayer();
+        renderPortal = new RenderPortal();
     }
 
     public void initialize() {
-        BackgroundRenderer.initialize();
-        RenderMap.initialize();
-        RenderPlayer.initialize();
+        backgroundRenderer.initialize();
+        renderMap.initialize();
+        renderPlayer.initialize();
+        renderPortal.initialize();
+        theEndScreen = new THE_END();
     }
 
     public void renderFrame(Camera camera, float deltaTime){
 
-        BackgroundRenderer.render(camera, deltaTime);
-        RenderMap.render(camera, deltaTime);
+        if (Main.getEngine().isGameCompleted()) {
+            theEndScreen.render(null, deltaTime);
+        } else {
+            backgroundRenderer.render(camera, deltaTime);
+            renderMap.render(camera, deltaTime);
+            renderPlayer.render(camera, deltaTime);
+            renderPortal.render(camera, deltaTime);
 
-        RenderPlayer.render(camera, deltaTime);
+        }
     }
 
     public void cleanUp() {
-        BackgroundRenderer.cleanup();
-        RenderMap.cleanup();
-        RenderPlayer.cleanup();
+        backgroundRenderer.cleanup();
+        renderMap.cleanup();
+        renderPlayer.cleanup();
     }
 }

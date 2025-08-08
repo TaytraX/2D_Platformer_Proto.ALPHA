@@ -1,12 +1,16 @@
 package render;
 
 import engine.GameLogger;
+import engine.Renderable;
+import entity.Camera;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL30C;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11C.GL_FLOAT;
 import static org.lwjgl.opengl.GL15C.*;
 import static org.lwjgl.opengl.GL15C.glBindBuffer;
@@ -16,7 +20,7 @@ import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL30C.glBindVertexArray;
 import static org.lwjgl.opengl.GL30C.glGenVertexArrays;
 
-public class THE_END {
+public class THE_END implements Renderable {
 
     private int VAO;
     private final Texture texture;
@@ -27,7 +31,7 @@ public class THE_END {
 
     public THE_END() {
         shader = new Shader("THE_END");
-        texture = new Texture("THE_END");
+        texture = new Texture("THE END");
         initialize();
     }
 
@@ -56,10 +60,10 @@ public class THE_END {
         indexBuffer.put(indices).flip();
 
         float[] textureCoords = {
-                0.0f, 0.0f,  // Bas gauche
-                1.0f, 0.0f,  // Bas droit
-                1.0f, 1.0f,  // Haut droit
-                0.0f, 1.0f   // Haut gauche
+                0.0f, 1.0f,  // Bas gauche -> correspond au haut de l'image
+                1.0f, 1.0f,  // Bas droit -> correspond au haut de l'image
+                1.0f, 0.0f,  // Haut droit -> correspond au bas de l'image
+                0.0f, 0.0f   // Haut gauche -> correspond au bas de l'image
         };
 
         FloatBuffer textureBuffer = org.lwjgl.BufferUtils.createFloatBuffer(textureCoords.length);
@@ -83,7 +87,8 @@ public class THE_END {
         glBindVertexArray(0);
     }
 
-    public void render() {
+    @Override
+    public void render(Camera camera, float deltaTime) {
         try {
             Matrix4f projectionMatrix = new Matrix4f().ortho(-1, 1, -1, 1, -1, 1);
             Matrix4f viewMatrix = new Matrix4f().identity();
@@ -110,9 +115,14 @@ public class THE_END {
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
 
-            shader.stop();
         } catch (Exception e) {
             GameLogger.error("Erreur dans le rendu du joueur", e);
         }
+    }
+
+    @Override
+    public void cleanup() {
+        shader.cleanup();
+        texture.cleanUp();
     }
 }
