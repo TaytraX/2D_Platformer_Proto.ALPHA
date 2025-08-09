@@ -28,7 +28,7 @@ public record Level_2() {
                             new AABB(new Vector2f(215.0f, 41.0f), new Vector2f(25.0f, 1.0f))
                 ),
             List.of(
-                new Portal(new Vector2f(238.6f, 43.5f), new Vector2f(1.4f, 1.8f))
+                new Portal(new Vector2f(238.6f, 43.6f), new Vector2f(1.4f, 1.8f))
             )
         );
     }
