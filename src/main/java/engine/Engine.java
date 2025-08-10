@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static engine.ThreadManager.loadLevelAsync;
 import static engine.ThreadManager.playerState;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
@@ -50,7 +51,7 @@ public class Engine {
             playerState.set(initialState);
             GameLogger.info("PlayerState initialisé");
 
-            loadInitialMap();
+            loadLevelAsync(getMapToLoad());
 
             // Vérification que l'état est bien défini
             PlayerState test = playerState.get();
@@ -65,7 +66,6 @@ public class Engine {
 
             Renderer = new Renderer();
             Renderer.initialize();
-            ThreadManager.initializer();
             camera = new Camera();
             player = new Player(window.getWindowID());
             physics = new Physics();
@@ -91,10 +91,6 @@ public class Engine {
             render();
         }
         cleanup();
-    }
-
-    private void loadInitialMap() {
-        loadLevel(getMapToLoad());
     }
 
     public void render() {
@@ -210,16 +206,6 @@ public class Engine {
 
     }
 
-    public void loadLevel(int level) {
-        if (!platforms.containsKey(level)) {
-
-            // Demander génération asynchrone
-            MapLoadRequest request = new MapLoadRequest(level);
-            ThreadManager.MapLoadQueue.offer(request);
-            GameLogger.debug("Demande dechargement du Level " + level);
-        }
-    }
-
     public LevelManager getLevelNearPlayer() {
         PlayerState state = playerState.get();
         if (state == null) return new LevelManager(new ArrayList<>(), new ArrayList<>());
@@ -245,7 +231,7 @@ public class Engine {
         if (level < 4) { // Maximum niveau 4
             level++;
             GameLogger.info("Transition vers niveau " + level);
-            loadLevel(getMapToLoad());
+            loadLevelAsync(getMapToLoad());
             manageMap();
         } else {
             GameLogger.info("Niveau maximum atteint !");
@@ -255,7 +241,6 @@ public class Engine {
 
     public void cleanup() {
         Renderer.cleanUp();
-        ThreadManager.shutdown();
         window.cleanup();
         glfwTerminate();
     }
