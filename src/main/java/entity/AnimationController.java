@@ -51,7 +51,7 @@ public class AnimationController {
 
     private AnimationState checkCriticalAnimations(PlayerState currentState) {
         // LANDING : vient d'atterrir avec vitesse élevée
-        if (currentState.isGrounded() && !currentState.wasGrounded() && Math.abs(currentState.previousVelocity()) > 0.2f) {
+        if (currentState.isGrounded() && !currentState.wasGrounded() && Math.abs(currentState.velocity().x()) > 0.2f) {
             return AnimationState.LANDING;
         }
         return null;

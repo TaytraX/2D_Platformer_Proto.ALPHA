@@ -36,7 +36,6 @@ public class Player {
                 state.jumpVelocity(),
                 state.isGrounded(),
                 state.wasGrounded(),
-                state.previousVelocity(),
                 state.animationState(),
                 facingRight,
                 moveLeft,      // ← Action déterminée

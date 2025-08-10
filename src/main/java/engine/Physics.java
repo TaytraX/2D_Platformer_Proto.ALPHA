@@ -53,7 +53,6 @@ public class Physics {
         newVelocity.y += GRAVITY * deltaTime;
         newPosition.y += newVelocity.y * deltaTime;
 
-        float impactVelocity = newVelocity.y;
         boolean wasGrounded = currentState.isGrounded();
 
         playerAABB = new AABB(newPosition, PlayerState.PLAYER_SIZE);
@@ -123,7 +122,6 @@ public class Physics {
                 jumpVelocity,
                 isGrounded,
                 wasGrounded,
-                impactVelocity,
                 currentState.animationState(),
                 currentState.facingRight(),
                 currentState.moveLeft(),

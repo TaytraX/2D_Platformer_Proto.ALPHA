@@ -170,7 +170,6 @@ public class Engine {
                 new Vector2f(0, 0),
                 false,
                 false,
-                0.0f,
                 AnimationState.IDLE,
                 true,
                 false,

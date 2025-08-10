@@ -10,8 +10,7 @@ public record PlayerState(
         Vector2f velocity,
         Vector2f jumpVelocity,
         boolean isGrounded,
-        boolean wasGrounded,
-        float previousVelocity,  // pour capturer la vélocité d'impact
+        boolean wasGrounded, // pour capturer la vélocité d'impact
         AnimationState animationState,
         boolean facingRight,
         boolean moveLeft,
