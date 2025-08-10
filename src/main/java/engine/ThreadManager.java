@@ -11,16 +11,12 @@ public class ThreadManager {
 
     public static final AtomicReference<PlayerState> playerState  = new AtomicReference<>();
 
-    public static final BlockingDeque<MapLoadRequest> MapLoadQueue = new LinkedBlockingDeque<>();
+    public static final BlockingDeque<MapLoadRequest> MapLoadQueue = new LinkedBlockingDeque<>(1);
 
     public static ExecutorService loadMapExecutor;
 
     public static void initializer() {
-        loadMapExecutor = Executors.newSingleThreadExecutor(r -> {
-            Thread thread = new Thread(r, "MapLoadThread");
-            thread.setDaemon(true);
-            return thread;
-        });
+        loadMapExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
         loadMapExecutor.submit(() -> {
             while(!Thread.currentThread().isInterrupted()) {
