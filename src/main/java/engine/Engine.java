@@ -194,8 +194,8 @@ public class Engine {
         }
     }
 
+    // Quelle carte charger : si le joueur est au niveau 1, charger la carte 2
     public int getMapToLoad() {
-
         return switch (level) {
             case 1 -> 2;
             case 2 -> 3;
@@ -215,6 +215,7 @@ public class Engine {
         return currentLevel != null ? currentLevel : new LevelManager(new ArrayList<>(), new ArrayList<>());
     }
 
+    // Est-ce qu'on doit faire une transition vers le niveau suivant ?
     private boolean checkTransition(PlayerState playerState, List<Portal> portals) {
         AABB playerAABB = playerState.getAABB();
 
@@ -227,6 +228,7 @@ public class Engine {
         return false;
     }
 
+    // Transition vers le niveau suivant
     public void transitionToNextLevel() {
         if (level < 4) { // Maximum niveau 4
             level++;
