@@ -1,5 +1,6 @@
 package entity;
 
+import engine.Engine;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2f;
 
@@ -12,7 +13,8 @@ public class Player {
         this.windowId = windowId;
     }
 
-    public PlayerState update(@NotNull PlayerState state, float deltaTime) {
+    public void update(float deltaTime) {
+        @NotNull PlayerState state = Engine.playerState;
         // Détection des touches
         boolean leftPressed = glfwGetKey(windowId, GLFW_KEY_A) == GLFW_PRESS;
         boolean rightPressed = glfwGetKey(windowId, GLFW_KEY_D) == GLFW_PRESS;
@@ -20,51 +22,33 @@ public class Player {
                                glfwGetKey(windowId, GLFW_KEY_W) == GLFW_PRESS;
 
         // Déterminez les mouvements en fonction de l'État au sol
-        boolean moveLeft = leftPressed && !rightPressed;
-        boolean moveRight = rightPressed && !leftPressed;
+        state.moveLeft = leftPressed && !rightPressed;
+        state.moveRight = rightPressed && !leftPressed;
 
-        boolean jump = jumpPressed && state.isGrounded();
+        System.out.println(state.isGrounded);
+        state.jump = jumpPressed && state.isGrounded;
 
         // 3. Appliquer les mouvements
-        Vector2f newVelocity = applyMovement(state, moveLeft, moveRight, jump, deltaTime);
-        boolean facingRight = moveRight || (!moveLeft && state.facingRight());
-
-        // Retourner le state avec les actions déterminées
-        return new PlayerState(
-                state.position(),
-                newVelocity,
-                state.jumpVelocity(),
-                state.isGrounded(),
-                state.wasGrounded(),
-                state.animationState(),
-                facingRight,
-                moveLeft,      // ← Action déterminée
-                moveRight,     // ← Action déterminée
-                jump,
-                state.force(),
-                state.blockedHorizontally(),
-                System.currentTimeMillis()
-        );
+        applyMovement(deltaTime);
+        state.facingRight = state.moveRight || (!state.moveLeft && state.facingRight);
     }
 
-    public Vector2f applyMovement(PlayerState state, boolean moveLeft, boolean moveRight, boolean jump, float deltaTime) {
-        Vector2f newVelocity = new Vector2f(state.velocity());
+    public void applyMovement(float deltaTime) {
+        Vector2f newVelocity = Engine.playerState.velocity;
 
         // Constantes d'accélération
-        final float move = state.force();
+        final float move = Engine.playerState.force;
 
         // Gestion accélération horizontale
-        if (moveLeft) {
+        if (Engine.playerState.moveLeft) {
             newVelocity.x -= move * deltaTime; // Limite gauche
-        } else if (moveRight) {
+        } else if (Engine.playerState.moveRight) {
                 newVelocity.x += move * deltaTime;  // Limite droite
         }
 
         // Saut inchangé
-        if (jump) {
-            newVelocity.y = state.force();
+        if (Engine.playerState.jump) {
+            newVelocity.y = Engine.playerState.force;
         }
-
-        return newVelocity;
     }
 }

@@ -20,11 +20,10 @@ public class Camera {
         position = new Vector2f(0, 0);
     }
 
-    public void followPlayer(float deltaTime) {
-        PlayerState currentState = ThreadManager.playerState.get();
-        if (currentState == null) return;
+    public void followPlayer(PlayerState playerState, float deltaTime) {
+        if (playerState == null) return;
 
-        Vector2f playerPos = currentState.position();
+        Vector2f playerPos = playerState.position;
 
         // Position cible avec offset
         Vector2f targetPos = new Vector2f(

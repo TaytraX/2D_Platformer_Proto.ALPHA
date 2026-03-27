@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static engine.ThreadManager.loadLevelAsync;
-import static engine.ThreadManager.playerState;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 public class Engine {
@@ -25,6 +24,7 @@ public class Engine {
     public Camera camera;
     public Player player;
     private Physics physics;
+    public static PlayerState playerState;
     private long lastTime = System.currentTimeMillis();
     private float deltaTime = 0.000016f;
     public int level = getMapToLoad() - 1;
@@ -47,15 +47,13 @@ public class Engine {
             GameLogger.info("Window OK");
 
             // Initialiser un PlayerState de base
-            PlayerState initialState = createSpawnState();
-            playerState.set(initialState);
+            playerState = createSpawnState();
             GameLogger.info("PlayerState initialisé");
 
             loadLevelAsync(getMapToLoad());
 
             // Vérification que l'état est bien défini
-            PlayerState test = playerState.get();
-            if (test == null) {
+            if (playerState == null) {
                 GameLogger.error("PlayerState est null après initialisation !", null);
                 throw new Exception("PlayerState initialization failed");
             }
@@ -102,31 +100,26 @@ public class Engine {
     }
 
     public void update() {
-        // 1. Récupérer l'état actuel
-        PlayerState currentState = playerState.get();
 
         // respawn si le joueur est mort
-        if (currentState.position().y <= -50.0f) {
-            currentState = createSpawnState();
+        if (playerState.position.y <= -50.0f) {
+            playerState = createSpawnState();
         }
 
         LevelManager currentLevel = getLevelNearPlayer();
 
         // 2. Traiter les inputs et mouvements
-        PlayerState afterInputs  = player.update(currentState, deltaTime);
+        player.update(deltaTime);
 
-        camera.followPlayer(deltaTime);
+        camera.followPlayer(playerState, deltaTime);
 
         // 2. Physics applique velocity à position
-        PlayerState afterPhysics = physics.update(afterInputs, getLevelNearPlayer().platforms(), deltaTime);
+        physics.update(getLevelNearPlayer().platforms(), deltaTime);
 
-        if(checkTransition(afterPhysics, currentLevel.portals())) {
+        if(checkTransition(playerState, currentLevel.portals())) {
             // Créer une nouvelle position de spawn pour le nouveau niveau
-            afterPhysics = createSpawnState();
+            playerState = createSpawnState();
         }
-
-        // 4. Sauvegarder le nouvel état
-        playerState.set(afterPhysics);
     }
 
     public void unloadChunk(int level) {
@@ -137,7 +130,6 @@ public class Engine {
 
     // Décharger les chunks lointains pour économiser la mémoire
     public void manageMap() {
-        PlayerState playerState = ThreadManager.playerState.get();
         if (playerState == null) return;
 
         int currentMap = getMapToLoad();
@@ -175,7 +167,7 @@ public class Engine {
                 false,
                 false,
                 false,
-                12.0f,
+                13.0f,
                 false,
                 System.currentTimeMillis()
         );
@@ -206,8 +198,7 @@ public class Engine {
     }
 
     public LevelManager getLevelNearPlayer() {
-        PlayerState state = playerState.get();
-        if (state == null) return new LevelManager(new ArrayList<>(), new ArrayList<>());
+        if (playerState == null) return new LevelManager(new ArrayList<>(), new ArrayList<>());
 
         LevelManager currentLevel = platforms.get(getMapToLoad());
 
@@ -216,7 +207,7 @@ public class Engine {
 
     // Est-ce qu'on doit faire une transition vers le niveau suivant ?
     private boolean checkTransition(PlayerState playerState, List<Portal> portals) {
-        AABB playerAABB = playerState.getAABB();
+        AABB playerAABB = playerState.aabb;
 
         for (Portal portal : portals) {
             if (portal.transit(playerAABB)) {

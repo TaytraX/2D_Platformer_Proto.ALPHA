@@ -1,16 +1,11 @@
 package engine;
 
 import engine.maps.*;
-import entity.PlayerState;
 
 import static engine.Engine.platforms;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ThreadManager {
-
-    public static final AtomicReference<PlayerState> playerState  = new AtomicReference<>();
-
     public static void loadLevelAsync(int level) {
         CompletableFuture<LevelManager> future = CompletableFuture.supplyAsync(() -> switch(level) {
                 case 2 -> new Level_2().load();

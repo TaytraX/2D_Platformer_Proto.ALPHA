@@ -15,6 +15,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Map;
 
+import static engine.Engine.playerState;
 import static org.lwjgl.opengl.GL15C.*;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
@@ -121,17 +122,15 @@ public class RenderPlayer implements Renderable {
 
     }
 
-    @Override
     public void render(Camera camera, float deltaTime) {
         try {
-            PlayerState currentState = ThreadManager.playerState.get();
-            if(currentState == null) {
+            if(playerState == null) {
                 GameLogger.error("PlayerState est null dans render !", null);
                 return;
             }
 
 
-            AABB playerAABB = currentState.getAABB();
+            AABB playerAABB = playerState.aabb;
             transformationMatrix.identity().translation(
                     playerAABB.getMinX() + playerAABB.halfSize().x,
                     playerAABB.getMinY() + playerAABB.halfSize().y,
@@ -139,7 +138,7 @@ public class RenderPlayer implements Renderable {
             );
 
             AnimationState newAnimation = animationController.processTransiteAnimation(
-                    currentState,
+                    playerState,
                     currentAnimation
             );
 
