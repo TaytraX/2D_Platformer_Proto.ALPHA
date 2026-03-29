@@ -25,12 +25,15 @@ public class Player {
         state.moveLeft = leftPressed && !rightPressed;
         state.moveRight = rightPressed && !leftPressed;
 
-        System.out.println(state.isGrounded);
         state.jump = jumpPressed && state.isGrounded;
 
         // 3. Appliquer les mouvements
         applyMovement(deltaTime);
         state.facingRight = state.moveRight || (!state.moveLeft && state.facingRight);
+
+        if (state.jump && !state.isGrounded) {
+            state.jump = true;
+        }
     }
 
     public void applyMovement(float deltaTime) {

@@ -100,7 +100,6 @@ public class Engine {
     }
 
     public void update() {
-
         // respawn si le joueur est mort
         if (playerState.position.y <= -50.0f) {
             playerState = createSpawnState();
@@ -160,7 +159,6 @@ public class Engine {
                 spawnPosition,
                 new Vector2f(0, 0),
                 new Vector2f(0, 0),
-                false,
                 false,
                 AnimationState.IDLE,
                 true,

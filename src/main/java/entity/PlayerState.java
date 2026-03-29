@@ -1,8 +1,6 @@
 package entity;
 
 import engine.AABB;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2f;
 
 public class PlayerState {
@@ -27,7 +25,6 @@ public class PlayerState {
             Vector2f velocity,
             Vector2f jumpVelocity,
             boolean isGrounded,
-            boolean wasGrounded,
             AnimationState animationState,
             boolean facingRight,
             boolean moveLeft,
@@ -41,7 +38,6 @@ public class PlayerState {
         this.velocity = velocity;
         this.jumpVelocity = jumpVelocity;
         this.isGrounded = isGrounded;
-        this.wasGrounded = wasGrounded;
         this.animationState = animationState;
         this.facingRight = facingRight;
         this.moveLeft = moveLeft;
